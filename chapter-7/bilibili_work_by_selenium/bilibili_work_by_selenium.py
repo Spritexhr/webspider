@@ -3,6 +3,7 @@ from selenium.common.exceptions import TimeoutException
 from selenium.webdriver.common.by import By
 from selenium.webdriver.support import expected_conditions as EC
 from selenium.webdriver.support.wait import WebDriverWait
+from selenium.webdriver.edge.options import Options  
 import logging
 
 logging.basicConfig(level=logging.INFO,
@@ -12,7 +13,12 @@ INDEX_URL = 'https://www.bilibili.com/v/popular/rank/all'
 TIMEOUT = 10
 TOTAL_PAGE = 20
 
-browser = webdriver.Edge()
+folder_to_clean = 'results' 
+
+# edge_options = Options()  
+# edge_options.add_argument("--mute-audio")  # 静音浏览器
+
+browser = webdriver.Edge()#(options=edge_options)
 wait = WebDriverWait(browser, TIMEOUT)
 
 def scrape_page(url, condition, locator):
@@ -40,6 +46,7 @@ def parse_index(which_one):
     icon_play = browser.find_element(By.XPATH,
                                      f"//div/ul/li[@data-rank = '{which_one+1}']/div/div[@class = 'info']/div[@class = 'detail']/div/span[1]").text
     return {
+        "rank": which_one + 1,
         "title": title,
         "href": href,
         "author": author,
@@ -71,8 +78,8 @@ def parse_detail():
             'coins': coins,
             'collection': collection
         }
-    except:
-        print('抓取细节时有错误产生')
+    except Exception:
+        print(f'抓取细节时有错误产生:{Exception}')
     
 
 options = webdriver.EdgeOptions()
@@ -81,6 +88,7 @@ browser = webdriver.Edge(options=options)
 
 def main():
     items = []
+    delete_files_in_folder_recursive(folder_to_clean)
     try:
         scrape_index()
         for num in range(TOTAL_PAGE):
@@ -97,8 +105,8 @@ def main():
                 merge_data =  {**items[index], **detail_data}
                 save_data(data=merge_data)
                 logging.info('merge_data: %s', merge_data)
-            except:
-                print('存入时有错误产生')
+            except Exception:
+                print(f'存入时有错误产生{Exception}')
 
     finally:
         browser.close()
@@ -115,7 +123,29 @@ def save_data(data):
     name = data.get('title')
     data_path = f'{RESULTS_DIR}/{name}.json'
     json.dump(data, open(data_path, 'w', encoding='utf-8'), ensure_ascii=False, indent=2)
-
+from os import walk
+from os import unlink
+from os.path import join
+from os.path import isfile
+from os.path import islink
+  
+def delete_files_in_folder_recursive(folder_path):  
+    # 检查文件夹是否存在  
+    if not exists(folder_path):  
+        print(f"文件夹 {folder_path} 不存在")  
+        return  
+      
+    # 遍历文件夹及其子文件夹  
+    for root, dirs, files in walk(folder_path):  
+        for file in files:  
+            file_path = join(root, file)  
+            try:  
+                # 删除文件  
+                if isfile(file_path) or islink(file_path):  
+                    unlink(file_path)  
+                    print(f"已删除文件 {file_path}")  
+            except Exception as e:  
+                print(f"删除文件 {file_path} 时出错: {e}")  
 
 if __name__ == '__main__':
     main()
