@@ -1,7 +1,10 @@
 import pytesseract
 from PIL import Image
 import numpy as np
+import re
 
+
+file_path = 'C:\code\python_work\web-spider\chapter-8\Tesseract-work\下载.png'
 # image = Image.open('下载.png')
 # print(np.array(image).shape)
 # print(image.mode)
@@ -39,28 +42,48 @@ def replace_non_white_with_black(image_path):
       
     # 返回修改后的图像  
     return new_img  
-image = replace_non_white_with_black('chapter-8\Tesseract-work\下载二.png')
+image = replace_non_white_with_black(file_path)
 string = pytesseract.image_to_string(image)
-string1 = string.replace('\n', '')
-string2 = string1.replace('\x0c', '')
-# print(eval(string2))
+print([string])
+captcha = re.sub(r'[^-+*/()0-9]', '', string) 
+print([captcha])
+print(eval(captcha))
 image.show()
 
-import numpy as np  
-from PIL import Image  
+
   
-def replace_non_white_with_black_numpy(image_path):  
-    # 打开图像并转换为NumPy数组  
-    img = np.array(Image.open(image_path))  
+# def replace_non_white_with_black_numpy(image_path):  
+#     # 打开图像并转换为NumPy数组  
+#     img = np.array(Image.open(image_path))  
       
-    # 替换非白色像素为黑色  
-    img[np.all(img != 255, axis=-1)] = 0  
+#     # 替换非白色像素为黑色  
+#     img[np.all(img != 255, axis=-1)] = 0  
       
-    # 将NumPy数组转换回Pillow图像  
-    new_img = Image.fromarray(img.astype(np.uint8))  
+#     # 将NumPy数组转换回Pillow图像  
+#     new_img = Image.fromarray(img.astype(np.uint8))  
       
-    return new_img  
-  
+#     return new_img  
+
+def preprocess(image):
+    image = Image.open(image)  
+    image = image.convert('L')
+    image.save('gray_image_1.jpg')
+    array = np.array(image)
+    array = np.where(array < 250, 0, 255)
+    image = Image.fromarray(array.astype('uint8'))
+    image.save('gray_image_2.jpg')
+    return image
+
 # 使用函数并保存结果  
 # modified_img_numpy = replace_non_white_with_black_numpy('path_to_your_image.jpg')  
 # modified_img_numpy.save('modified_image_numpy.jpg')
+
+
+
+image = preprocess(file_path)
+string = pytesseract.image_to_string(image)
+print([string])
+captcha = re.sub(r'[^-+*/()0-9]', '', string) 
+print([captcha])
+print(eval(captcha))
+image.show()
