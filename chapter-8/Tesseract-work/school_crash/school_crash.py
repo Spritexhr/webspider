@@ -4,10 +4,8 @@ import numpy as np
 import re
 import time
 from io import BytesIO
-import re
-from playwright.sync_api import Playwright, sync_playwright, expect, TimeoutError
+from playwright.sync_api import Playwright, sync_playwright, TimeoutError
 import logging
-
 import base64  
 
 
