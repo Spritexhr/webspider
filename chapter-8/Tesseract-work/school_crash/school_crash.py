@@ -7,6 +7,7 @@ from io import BytesIO
 from playwright.sync_api import Playwright, sync_playwright, TimeoutError
 import logging
 import base64  
+import sys
 
 
 logging.basicConfig(level=logging.INFO,
@@ -56,7 +57,7 @@ def run(playwright: Playwright):
     attempt_2 = 1
     while attempt_2 < MAX_RETRY:
         attempt_1 = 1
-        while attempt_1 <= MAX_RETRY:
+        while True:
             try:
                 context = browser.new_context()
                 page = context.new_page()
@@ -70,6 +71,8 @@ def run(playwright: Playwright):
                 break
             except SyntaxError:
                 attempt_1 += 1
+                if attempt_1 == MAX_RETRY:
+                    sys.exit('program failed')
 
         page1.get_by_placeholder("算术答案").fill(captcha_result)  
         logging.info('captcha: %s', captcha) 
@@ -84,6 +87,8 @@ def run(playwright: Playwright):
             break
         except TimeoutError:
             attempt_2 += 1
+            if attempt_1 == MAX_RETRY:
+                sys.exit('program failed')
 
 with sync_playwright() as playwright:
     run(playwright)
